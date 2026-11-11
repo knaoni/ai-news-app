@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 커뮤니케이션 규칙
+
+작업 과정 설명, 진행 상황 공유, 결과 보고, 질문, 오류 해결 방법 안내는 모두 한국어로 작성할 것. 코드, 파일명, 명령어, 식별자 등 영어가 필요한 부분은 원문 그대로 유지.
+
 ## 프로젝트 현황
 
 이 저장소는 현재 **M0** 단계(프로젝트 스캐폴드만 존재)입니다 — 전체 마일스톤 표는 `PRD.md` §6 참고. `src/app/`에는 아직 `create-next-app`이 생성한 기본 페이지만 있고, 앱 기능/DB 스키마/인증/외부 연동은 전혀 구현되지 않았습니다. 제품 범위, 데이터 모델, 빌드 순서에 대해서는 `PRD.md`를 기준 문서로 삼고, 어떤 마일스톤이든 작업 시작 전에 먼저 읽을 것.

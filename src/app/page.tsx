@@ -1,5 +1,8 @@
 import Image from "next/image";
 
+// 로그인 사용자별 데이터를 다루는 동적 페이지
+export const instant = false;
+
 export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
