@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NewsCard } from "./news-card";
 
 export type DashboardCategory = {
@@ -31,7 +32,10 @@ type DashboardViewProps = {
 const ALL_FILTER = "all";
 
 export function DashboardView({ categories, articles }: DashboardViewProps) {
+  const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(ALL_FILTER);
+  const [isFetchingNews, setIsFetchingNews] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const filteredArticles = useMemo(() => {
     if (selectedCategoryId === ALL_FILTER) {
@@ -40,17 +44,69 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
     return articles.filter((article) => article.categoryId === selectedCategoryId);
   }, [articles, selectedCategoryId]);
 
+  const handleFetchNews = async () => {
+    setIsFetchingNews(true);
+    setFetchError(null);
+    try {
+      const res = await fetch("/api/news/fetch", { method: "POST" });
+      if (!res.ok) {
+        throw new Error("뉴스를 가져오는 중 오류가 발생했습니다.");
+      }
+      router.refresh();
+    } catch (error) {
+      setFetchError(
+        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsFetchingNews(false);
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             AI 뉴스 수집기
           </h1>
+          <button
+            type="button"
+            onClick={handleFetchNews}
+            disabled={isFetchingNews}
+            className="flex shrink-0 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 dark:hover:bg-[#ccc]"
+          >
+            {isFetchingNews ? (
+              <svg
+                className="h-4 w-4 animate-spin"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+                />
+              </svg>
+            ) : null}
+            뉴스 가져오기
+          </button>
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6">
+        {fetchError ? (
+          <p className="mb-4 text-sm text-red-500">{fetchError}</p>
+        ) : null}
+
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
@@ -89,12 +145,55 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
         </div>
 
         {filteredArticles.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              className="h-10 w-10 text-zinc-300 dark:text-zinc-700"
+            >
+              <path
+                d="M4 6a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 4v5a1 1 0 0 0 1 1h5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M8 13h8M8 17h5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {articles.length === 0
                 ? "아직 가져온 뉴스가 없습니다."
                 : "이 카테고리에 해당하는 뉴스가 없습니다."}
             </p>
+            {articles.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSelectedCategoryId(ALL_FILTER)}
+                className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                전체 보기
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFetchNews}
+                disabled={isFetchingNews}
+                className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 dark:hover:bg-[#ccc]"
+              >
+                뉴스 가져오기
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
