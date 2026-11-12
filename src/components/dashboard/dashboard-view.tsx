@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CategoryModal } from "./category-modal";
 import { NewsCard } from "./news-card";
 
 export type DashboardCategory = {
   id: string;
   name: string;
+  color: string;
 };
 
 export type DashboardArticle = {
@@ -65,6 +67,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   const filteredArticles = useMemo(() => {
     if (selectedCategoryId === ALL_FILTER) {
@@ -174,10 +177,15 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
               onClick={() => handleSelectCategory(category.id)}
               className={
                 selectedCategoryId === category.id
-                  ? "shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
-                  : "shrink-0 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? "flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
+                  : "flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
               }
             >
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: category.color }}
+              />
               {category.name}
             </button>
           ))}
@@ -185,11 +193,22 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           <button
             type="button"
             aria-label="카테고리 추가"
+            onClick={() => setIsCategoryModalOpen(true)}
             className="shrink-0 rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:border-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-600 dark:hover:text-zinc-300"
           >
             + 추가
           </button>
         </div>
+
+        {isCategoryModalOpen ? (
+          <CategoryModal
+            onClose={() => setIsCategoryModalOpen(false)}
+            onCreated={() => {
+              setIsCategoryModalOpen(false);
+              router.refresh();
+            }}
+          />
+        ) : null}
 
         {filteredArticles.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">

@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { articleClassifications, categories } from "@/lib/db/schema";
+import { ensureDefaultCategories } from "@/lib/categories/ensure-default-categories";
 import {
   DashboardView,
   type DashboardArticle,
@@ -18,6 +19,8 @@ export default async function DashboardPage() {
     return null;
   }
 
+  await ensureDefaultCategories(userId);
+
   const [userCategories, feedRows] = await Promise.all([
     db.query.categories.findMany({
       where: eq(categories.userId, userId),
@@ -33,6 +36,7 @@ export default async function DashboardPage() {
     (category) => ({
       id: category.id,
       name: category.name,
+      color: category.color,
     }),
   );
 

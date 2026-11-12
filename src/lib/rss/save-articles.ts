@@ -1,23 +1,15 @@
-import { sql } from "drizzle-orm";
+import { and, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { articleClassifications, articles } from "@/lib/db/schema";
+import type { TranslationTarget } from "@/lib/claude/types";
 import type { FetchedArticle } from "./fetch-feeds";
-
-// 실제 Claude 요약 파이프라인이 붙기 전까지, 카드에 바로 보여줄 임시 요약(원문 발췌)의 길이
-const SUMMARY_PLACEHOLDER_LENGTH = 180;
-
-function buildPlaceholderSummary(contentOriginal: string) {
-  const trimmed = contentOriginal.trim();
-  if (trimmed.length <= SUMMARY_PLACEHOLDER_LENGTH) return trimmed;
-  return `${trimmed.slice(0, SUMMARY_PLACEHOLDER_LENGTH)}…`;
-}
 
 export async function saveArticlesForUser(
   userId: string,
   fetched: FetchedArticle[],
-) {
+): Promise<{ linkedCount: number; articlesNeedingTranslation: TranslationTarget[] }> {
   if (fetched.length === 0) {
-    return { linkedCount: 0 };
+    return { linkedCount: 0, articlesNeedingTranslation: [] };
   }
 
   // 같은 요청 안에서 URL이 중복되면(여러 피드가 같은 기사를 싣는 경우 등) 1건으로 합친다.
@@ -38,8 +30,6 @@ export async function saveArticlesForUser(
         contentOriginal: article.contentOriginal,
         source: article.source,
         publishedAt: article.publishedAt,
-        summaryKo: buildPlaceholderSummary(article.contentOriginal),
-        translationStatus: "completed" as const,
       })),
     )
     .onConflictDoUpdate({
@@ -63,5 +53,22 @@ export async function saveArticlesForUser(
       target: [articleClassifications.userId, articleClassifications.articleId],
     });
 
-  return { linkedCount: savedRows.length };
+  const articlesNeedingTranslation = await db
+    .select({
+      id: articles.id,
+      titleOriginal: articles.titleOriginal,
+      contentOriginal: articles.contentOriginal,
+    })
+    .from(articles)
+    .where(
+      and(
+        inArray(
+          articles.id,
+          savedRows.map((row) => row.id),
+        ),
+        ne(articles.translationStatus, "completed"),
+      ),
+    );
+
+  return { linkedCount: savedRows.length, articlesNeedingTranslation };
 }

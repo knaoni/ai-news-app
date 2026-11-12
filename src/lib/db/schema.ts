@@ -78,6 +78,7 @@ export const categories = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
+    color: text("color").notNull().default("#71717a"),
     isDefault: boolean("is_default").notNull().default(false),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
