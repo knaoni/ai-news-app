@@ -27,11 +27,11 @@ export function NewsCard({ article }: { article: DashboardArticle }) {
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          <h2 className="line-clamp-2 text-base font-medium leading-snug text-zinc-900 dark:text-zinc-100">
+          <h2 className="line-clamp-2 break-words text-base font-medium leading-snug text-zinc-900 dark:text-zinc-100">
             {article.titleKo ?? article.titleOriginal}
           </h2>
           {article.summaryKo ? (
-            <p className="line-clamp-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="line-clamp-3 break-words text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
               {article.summaryKo}
             </p>
           ) : null}
@@ -42,7 +42,7 @@ export function NewsCard({ article }: { article: DashboardArticle }) {
         <p className="text-xs text-red-500">번역/요약에 실패한 기사입니다.</p>
       ) : null}
 
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
         <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
           {article.categoryName ?? "미분류"}
         </span>
