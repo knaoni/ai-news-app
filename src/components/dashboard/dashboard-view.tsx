@@ -31,6 +31,33 @@ type DashboardViewProps = {
 
 const ALL_FILTER = "all";
 const PAGE_SIZE = 9;
+const PAGE_RANGE_DELTA = 2;
+
+type PaginationItem = number | "ellipsis-start" | "ellipsis-end";
+
+// 현재 페이지 기준 앞뒤로 PAGE_RANGE_DELTA개 + 첫/마지막 페이지만 남기고,
+// 번호가 이어지지 않는 구간은 "..."(ellipsis)로 축약한다.
+function getPaginationItems(current: number, total: number): PaginationItem[] {
+  const left = Math.max(current - PAGE_RANGE_DELTA, 1);
+  const right = Math.min(current + PAGE_RANGE_DELTA, total);
+  const items: PaginationItem[] = [];
+
+  if (left > 1) {
+    items.push(1);
+    if (left > 2) items.push("ellipsis-start");
+  }
+
+  for (let i = left; i <= right; i++) {
+    items.push(i);
+  }
+
+  if (right < total) {
+    if (right < total - 1) items.push("ellipsis-end");
+    items.push(total);
+  }
+
+  return items;
+}
 
 export function DashboardView({ categories, articles }: DashboardViewProps) {
   const router = useRouter();
@@ -52,6 +79,11 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
     const start = (page - 1) * PAGE_SIZE;
     return filteredArticles.slice(start, start + PAGE_SIZE);
   }, [filteredArticles, page]);
+
+  const paginationItems = useMemo(
+    () => getPaginationItems(page, totalPages),
+    [page, totalPages],
+  );
 
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
@@ -225,6 +257,15 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
               >
                 <button
                   type="button"
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  aria-label="첫 페이지"
+                  className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  처음
+                </button>
+                <button
+                  type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   aria-label="이전 페이지"
@@ -233,21 +274,29 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                   이전
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (pageNumber) => (
+                {paginationItems.map((item) =>
+                  typeof item === "number" ? (
                     <button
-                      key={pageNumber}
+                      key={item}
                       type="button"
-                      onClick={() => setPage(pageNumber)}
-                      aria-current={pageNumber === page ? "page" : undefined}
+                      onClick={() => setPage(item)}
+                      aria-current={item === page ? "page" : undefined}
                       className={
-                        pageNumber === page
+                        item === page
                           ? "h-8 w-8 shrink-0 rounded-full bg-foreground text-sm font-medium text-background"
                           : "h-8 w-8 shrink-0 rounded-full text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:text-zinc-300 dark:hover:bg-zinc-800"
                       }
                     >
-                      {pageNumber}
+                      {item}
                     </button>
+                  ) : (
+                    <span
+                      key={item}
+                      aria-hidden="true"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-sm text-zinc-400 dark:text-zinc-500"
+                    >
+                      …
+                    </span>
                   ),
                 )}
 
@@ -259,6 +308,15 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                   className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   다음
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                  aria-label="마지막 페이지"
+                  className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  끝
                 </button>
               </nav>
             ) : null}
