@@ -30,12 +30,14 @@ type DashboardViewProps = {
 };
 
 const ALL_FILTER = "all";
+const PAGE_SIZE = 9;
 
 export function DashboardView({ categories, articles }: DashboardViewProps) {
   const router = useRouter();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(ALL_FILTER);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const filteredArticles = useMemo(() => {
     if (selectedCategoryId === ALL_FILTER) {
@@ -43,6 +45,18 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
     }
     return articles.filter((article) => article.categoryId === selectedCategoryId);
   }, [articles, selectedCategoryId]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
+
+  const paginatedArticles = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredArticles.slice(start, start + PAGE_SIZE);
+  }, [filteredArticles, page]);
+
+  const handleSelectCategory = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setPage(1);
+  };
 
   const handleFetchNews = async () => {
     setIsFetchingNews(true);
@@ -52,6 +66,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
       if (!res.ok) {
         throw new Error("뉴스를 가져오는 중 오류가 발생했습니다.");
       }
+      setPage(1);
       router.refresh();
     } catch (error) {
       setFetchError(
@@ -110,7 +125,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
-            onClick={() => setSelectedCategoryId(ALL_FILTER)}
+            onClick={() => handleSelectCategory(ALL_FILTER)}
             className={
               selectedCategoryId === ALL_FILTER
                 ? "shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
@@ -124,7 +139,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
             <button
               key={category.id}
               type="button"
-              onClick={() => setSelectedCategoryId(category.id)}
+              onClick={() => handleSelectCategory(category.id)}
               className={
                 selectedCategoryId === category.id
                   ? "shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
@@ -179,7 +194,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
             {articles.length > 0 ? (
               <button
                 type="button"
-                onClick={() => setSelectedCategoryId(ALL_FILTER)}
+                onClick={() => handleSelectCategory(ALL_FILTER)}
                 className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
                 전체 보기
@@ -196,11 +211,58 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredArticles.map((article) => (
-              <NewsCard key={article.classificationId} article={article} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedArticles.map((article) => (
+                <NewsCard key={article.classificationId} article={article} />
+              ))}
+            </div>
+
+            {totalPages > 1 ? (
+              <nav
+                aria-label="페이지 이동"
+                className="mt-8 flex items-center justify-center gap-1"
+              >
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  aria-label="이전 페이지"
+                  className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  이전
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setPage(pageNumber)}
+                      aria-current={pageNumber === page ? "page" : undefined}
+                      className={
+                        pageNumber === page
+                          ? "h-8 w-8 shrink-0 rounded-full bg-foreground text-sm font-medium text-background"
+                          : "h-8 w-8 shrink-0 rounded-full text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      }
+                    >
+                      {pageNumber}
+                    </button>
+                  ),
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  aria-label="다음 페이지"
+                  className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                >
+                  다음
+                </button>
+              </nav>
+            ) : null}
+          </>
         )}
       </main>
     </div>
