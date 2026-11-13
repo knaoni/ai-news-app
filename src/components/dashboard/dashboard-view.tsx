@@ -24,6 +24,7 @@ export type DashboardArticle = {
   translationStatus: "pending" | "completed" | "failed";
   categoryId: string | null;
   categoryName: string | null;
+  notionPageUrl: string | null;
 };
 
 type DashboardViewProps = {
