@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { articleClassifications, categories } from "@/lib/db/schema";
+import { articleClassifications, categories, notionSaves } from "@/lib/db/schema";
 import { ensureDefaultCategories } from "@/lib/categories/ensure-default-categories";
 import {
   DashboardView,
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   await ensureDefaultCategories(userId);
 
-  const [userCategories, feedRows] = await Promise.all([
+  const [userCategories, feedRows, userNotionSaves] = await Promise.all([
     db.query.categories.findMany({
       where: eq(categories.userId, userId),
       orderBy: [asc(categories.position), asc(categories.createdAt)],
@@ -30,7 +30,14 @@ export default async function DashboardPage() {
       where: eq(articleClassifications.userId, userId),
       with: { article: true, category: true },
     }),
+    db.query.notionSaves.findMany({
+      where: eq(notionSaves.userId, userId),
+    }),
   ]);
+
+  const notionPageUrlByArticleId = new Map(
+    userNotionSaves.map((save) => [save.articleId, save.notionPageUrl]),
+  );
 
   const dashboardCategories: DashboardCategory[] = userCategories.map(
     (category) => ({
@@ -54,6 +61,7 @@ export default async function DashboardPage() {
       translationStatus: row.article.translationStatus,
       categoryId: row.categoryId,
       categoryName: row.category?.name ?? null,
+      notionPageUrl: notionPageUrlByArticleId.get(row.article.id) ?? null,
     }))
     .sort((a, b) => {
       const aTime = (a.publishedAt ?? a.createdAt).getTime();
