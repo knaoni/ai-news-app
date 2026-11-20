@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CategoryModal } from "./category-modal";
 import { NewsCard } from "./news-card";
@@ -69,13 +69,24 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredArticles = useMemo(() => {
-    if (selectedCategoryId === ALL_FILTER) {
-      return articles;
-    }
-    return articles.filter((article) => article.categoryId === selectedCategoryId);
-  }, [articles, selectedCategoryId]);
+    const keyword = searchQuery.trim().toLowerCase();
+    return articles.filter((article) => {
+      const matchesCategory =
+        selectedCategoryId === ALL_FILTER || article.categoryId === selectedCategoryId;
+      if (!matchesCategory) return false;
+      if (!keyword) return true;
+      return (
+        article.titleKo?.toLowerCase().includes(keyword) ||
+        article.titleOriginal.toLowerCase().includes(keyword) ||
+        article.summaryKo?.toLowerCase().includes(keyword) ||
+        false
+      );
+    });
+  }, [articles, selectedCategoryId, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
 
@@ -91,6 +102,18 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
 
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
+    setPage(1);
+  };
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSearchQuery(searchInput.trim());
+    setPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
     setPage(1);
   };
 
@@ -158,47 +181,78 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           <p className="mb-4 text-sm text-red-500">{fetchError}</p>
         ) : null}
 
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <button
-            type="button"
-            onClick={() => handleSelectCategory(ALL_FILTER)}
-            className={
-              selectedCategoryId === ALL_FILTER
-                ? "shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
-                : "shrink-0 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            }
-          >
-            전체
-          </button>
-
-          {categories.map((category) => (
+        <div className="mb-6 flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
-              key={category.id}
               type="button"
-              onClick={() => handleSelectCategory(category.id)}
+              onClick={() => handleSelectCategory(ALL_FILTER)}
               className={
-                selectedCategoryId === category.id
-                  ? "flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
-                  : "flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                selectedCategoryId === ALL_FILTER
+                  ? "shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
+                  : "shrink-0 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
               }
             >
-              <span
-                aria-hidden="true"
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              {category.name}
+              전체
             </button>
-          ))}
 
-          <button
-            type="button"
-            aria-label="카테고리 추가"
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="shrink-0 rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:border-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-600 dark:hover:text-zinc-300"
-          >
-            + 추가
-          </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => handleSelectCategory(category.id)}
+                className={
+                  selectedCategoryId === category.id
+                    ? "flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background"
+                    : "flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                }
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: category.color }}
+                />
+                {category.name}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              aria-label="카테고리 추가"
+              onClick={() => setIsCategoryModalOpen(true)}
+              className="shrink-0 rounded-full border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:border-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-600 dark:hover:text-zinc-300"
+            >
+              + 추가
+            </button>
+          </div>
+
+          <form onSubmit={handleSearchSubmit} className="flex shrink-0 gap-1.5">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="키워드 검색"
+                aria-label="뉴스 키워드 검색"
+                className="w-28 rounded-full border border-zinc-200 bg-white px-3 py-1.5 pr-7 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 sm:w-40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="검색어 지우기"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                >
+                  ✕
+                </button>
+              ) : null}
+            </div>
+            <button
+              type="submit"
+              className="shrink-0 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            >
+              검색
+            </button>
+          </form>
         </div>
 
         {isCategoryModalOpen ? (
@@ -241,12 +295,17 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {articles.length === 0
                 ? "아직 가져온 뉴스가 없습니다."
-                : "이 카테고리에 해당하는 뉴스가 없습니다."}
+                : searchQuery
+                  ? `'${searchQuery}'에 대한 검색 결과가 없습니다.`
+                  : "이 카테고리에 해당하는 뉴스가 없습니다."}
             </p>
             {articles.length > 0 ? (
               <button
                 type="button"
-                onClick={() => handleSelectCategory(ALL_FILTER)}
+                onClick={() => {
+                  handleSelectCategory(ALL_FILTER);
+                  handleClearSearch();
+                }}
                 className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
                 전체 보기
