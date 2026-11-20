@@ -26,6 +26,10 @@ npm run lint      # eslint (flat config, eslint-config-next core-web-vitals + ty
 
 아직 테스트 러너는 설정되어 있지 않습니다. `drizzle-kit` 설정 파일도 아직 없음(M1에서 필요 — 아래 참고).
 
+## Claude Code 슬래시 명령
+
+`.claude/commands/news-workflow.md`에 `/news-workflow [기능 이름]` 명령이 정의되어 있습니다. 새 기능 개발을 시작할 때 사용하며, 다음을 순서대로 진행합니다: 현재 상태/브랜치 확인 → 기능 브랜치 생성 → `CLAUDE.md` 기준 기술 스택·컨벤션 안내 → ('완료'/'done' 입력 시) 변경 파일 확인 및 커밋 메시지 제안 → 커밋 및 main 병합 → 작업 요약.
+
 ## 기술 스택 (`PRD.md` §4 기준)
 
 | 영역 | 선택 |
