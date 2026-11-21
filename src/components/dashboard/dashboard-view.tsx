@@ -64,6 +64,15 @@ function getPaginationItems(current: number, total: number): PaginationItem[] {
 
 export function DashboardView({ categories, articles }: DashboardViewProps) {
   const router = useRouter();
+  // 서버에서 새 articles props가 내려오면(router.refresh 등) 로컬 상태를 그에 맞춰
+  // 리셋한다. effect 대신 렌더 중 비교로 처리(React 권장 패턴).
+  const [prevArticles, setPrevArticles] = useState(articles);
+  const [localArticles, setLocalArticles] = useState(articles);
+  if (articles !== prevArticles) {
+    setPrevArticles(articles);
+    setLocalArticles(articles);
+  }
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(ALL_FILTER);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -72,9 +81,13 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleDeleteArticle = (articleId: string) => {
+    setLocalArticles((prev) => prev.filter((article) => article.articleId !== articleId));
+  };
+
   const filteredArticles = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
-    return articles.filter((article) => {
+    return localArticles.filter((article) => {
       const matchesCategory =
         selectedCategoryId === ALL_FILTER || article.categoryId === selectedCategoryId;
       if (!matchesCategory) return false;
@@ -86,18 +99,20 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
         false
       );
     });
-  }, [articles, selectedCategoryId, searchQuery]);
+  }, [localArticles, selectedCategoryId, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
+  // 삭제로 필터 결과가 줄어 현재 페이지가 범위를 벗어날 수 있으므로 렌더 시점에 보정한다.
+  const currentPage = Math.min(page, totalPages);
 
   const paginatedArticles = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
+    const start = (currentPage - 1) * PAGE_SIZE;
     return filteredArticles.slice(start, start + PAGE_SIZE);
-  }, [filteredArticles, page]);
+  }, [filteredArticles, currentPage]);
 
   const paginationItems = useMemo(
-    () => getPaginationItems(page, totalPages),
-    [page, totalPages],
+    () => getPaginationItems(currentPage, totalPages),
+    [currentPage, totalPages],
   );
 
   const handleSelectCategory = (categoryId: string) => {
@@ -293,13 +308,13 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
               />
             </svg>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {articles.length === 0
+              {localArticles.length === 0
                 ? "아직 가져온 뉴스가 없습니다."
                 : searchQuery
                   ? `'${searchQuery}'에 대한 검색 결과가 없습니다.`
                   : "이 카테고리에 해당하는 뉴스가 없습니다."}
             </p>
-            {articles.length > 0 ? (
+            {localArticles.length > 0 ? (
               <button
                 type="button"
                 onClick={() => {
@@ -325,7 +340,11 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {paginatedArticles.map((article) => (
-                <NewsCard key={article.classificationId} article={article} />
+                <NewsCard
+                  key={article.classificationId}
+                  article={article}
+                  onDeleted={handleDeleteArticle}
+                />
               ))}
             </div>
 
@@ -337,7 +356,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                 <button
                   type="button"
                   onClick={() => setPage(1)}
-                  disabled={page === 1}
+                  disabled={currentPage === 1}
                   aria-label="첫 페이지"
                   className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
@@ -346,7 +365,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
+                  disabled={currentPage === 1}
                   aria-label="이전 페이지"
                   className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
@@ -359,9 +378,9 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                       key={item}
                       type="button"
                       onClick={() => setPage(item)}
-                      aria-current={item === page ? "page" : undefined}
+                      aria-current={item === currentPage ? "page" : undefined}
                       className={
-                        item === page
+                        item === currentPage
                           ? "h-8 w-8 shrink-0 rounded-full bg-foreground text-sm font-medium text-background"
                           : "h-8 w-8 shrink-0 rounded-full text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 dark:text-zinc-300 dark:hover:bg-zinc-800"
                       }
@@ -382,7 +401,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                 <button
                   type="button"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
+                  disabled={currentPage === totalPages}
                   aria-label="다음 페이지"
                   className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
@@ -391,7 +410,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
                 <button
                   type="button"
                   onClick={() => setPage(totalPages)}
-                  disabled={page === totalPages}
+                  disabled={currentPage === totalPages}
                   aria-label="마지막 페이지"
                   className="rounded-full border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >

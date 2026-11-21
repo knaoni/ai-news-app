@@ -10,10 +10,17 @@ function formatDate(date: Date) {
   return `${y}.${m}.${d}`;
 }
 
-export function NewsCard({ article }: { article: DashboardArticle }) {
+type NewsCardProps = {
+  article: DashboardArticle;
+  onDeleted: (articleId: string) => void;
+};
+
+export function NewsCard({ article, onDeleted }: NewsCardProps) {
   const [notionPageUrl, setNotionPageUrl] = useState(article.notionPageUrl);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const displayDate = article.publishedAt ?? article.createdAt;
   const isPending = article.translationStatus === "pending";
@@ -43,9 +50,49 @@ export function NewsCard({ article }: { article: DashboardArticle }) {
     }
   };
 
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    if (!window.confirm("이 뉴스를 삭제하시겠습니까?")) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/news/${article.articleId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "뉴스 삭제에 실패했습니다.");
+      }
+      onDeleted(article.articleId);
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+      );
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-500">
+    <article className="relative flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={isDeleting}
+        aria-label="뉴스 삭제"
+        className="absolute right-2 top-2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+      >
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+          className="h-4 w-4"
+        >
+          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+        </svg>
+      </button>
+
+      <div className="flex items-center justify-between pr-6 text-xs text-zinc-400 dark:text-zinc-500">
         <span>{article.source}</span>
         <span>{formatDate(displayDate)}</span>
       </div>
@@ -74,6 +121,7 @@ export function NewsCard({ article }: { article: DashboardArticle }) {
       ) : null}
 
       {saveError ? <p className="text-xs text-red-500">{saveError}</p> : null}
+      {deleteError ? <p className="text-xs text-red-500">{deleteError}</p> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
         <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
