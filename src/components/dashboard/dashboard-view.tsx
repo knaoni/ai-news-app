@@ -143,9 +143,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
       setPage(1);
       router.refresh();
     } catch (error) {
-      setFetchError(
-        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-      );
+      setFetchError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
       setIsFetchingNews(false);
     }
@@ -155,9 +153,14 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            AI 뉴스 수집기
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              AI 뉴스 수집기
+            </h1>
+            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+              총 {localArticles.length}개의 뉴스
+            </span>
+          </div>
           <button
             type="button"
             onClick={handleFetchNews}
@@ -192,9 +195,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
       </header>
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6">
-        {fetchError ? (
-          <p className="mb-4 text-sm text-red-500">{fetchError}</p>
-        ) : null}
+        {fetchError ? <p className="mb-4 text-sm text-red-500">{fetchError}</p> : null}
 
         <div className="mb-6 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -349,10 +350,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
             </div>
 
             {totalPages > 1 ? (
-              <nav
-                aria-label="페이지 이동"
-                className="mt-8 flex items-center justify-center gap-1"
-              >
+              <nav aria-label="페이지 이동" className="mt-8 flex items-center justify-center gap-1">
                 <button
                   type="button"
                   onClick={() => setPage(1)}
