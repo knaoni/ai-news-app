@@ -24,6 +24,7 @@ export type DashboardArticle = {
   translationStatus: "pending" | "completed" | "failed";
   categoryId: string | null;
   categoryName: string | null;
+  categoryColor: string | null;
   notionPageUrl: string | null;
 };
 
@@ -282,7 +283,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
         ) : null}
 
         {isFetchingNews ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <NewsCardSkeleton key={i} />
             ))}
@@ -345,7 +346,7 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {paginatedArticles.map((article) => (
                 <NewsCard
                   key={article.classificationId}

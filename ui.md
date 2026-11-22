@@ -25,11 +25,12 @@ AI 뉴스 수집기의 UI 디자인 가이드. 메인 화면(대시보드)의 �
 
 ## 3. 타이포그래피
 
-- 폰트: 기존 설정 유지 (`--font-sans` = Geist Sans).
+- 폰트: `--font-sans` = Geist Sans. `body`는 `font-family: var(--font-sans), ...`로 실제 적용되어야 한다(하드코딩된 Arial 폴백으로 덮어쓰지 않는다).
 - 페이지 제목(앱 이름/헤더): `text-lg font-semibold`
-- 카드 제목(기사 제목 한국어): `text-base font-medium leading-snug`
-- 카드 요약문: `text-sm leading-relaxed text-zinc-500 dark:text-zinc-400`
-- 메타 정보(출처, 날짜): `text-xs text-zinc-400 dark:text-zinc-500`
+- 카드 제목(기사 제목 한국어): `text-[17px] font-semibold leading-snug tracking-tight` — 요약문보다 한 단계 더 뚜렷한 굵기·크기로 카드 내 시각적 1순위임을 드러낸다.
+- 카드 요약문: `text-sm leading-relaxed text-zinc-600 dark:text-zinc-400` (라이트 모드는 `zinc-500` 대신 `zinc-600`을 사용해 본문 대비를 AA 기준보다 여유 있게 확보)
+- 출처(메타 1순위): `text-xs font-medium text-zinc-600 dark:text-zinc-300` — 날짜보다 한 단계 강조해 "누가 쓴 기사인지"를 더 빠르게 인지시킨다.
+- 날짜(메타 2순위): `text-xs text-zinc-400 dark:text-zinc-500`
 - 카테고리 칩 라벨: `text-sm font-medium`
 
 ## 4. 전체 레이아웃
@@ -72,27 +73,32 @@ AI 뉴스 수집기의 UI 디자인 가이드. 메인 화면(대시보드)의 �
 
 ### 4.3 뉴스 카드 그리드
 
-- 그리드: `grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3`
+- 그리드: `grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3`
 - 데이터가 없을 때(최초 진입/필터 결과 없음): 그리드 대신 중앙 정렬된 안내 문구 + '뉴스 가져오기' 버튼 재노출.
 
 ## 5. 뉴스 카드 컴포넌트
 
 ```
 ┌───────────────────────────────┐
-│ [출처]            2026.11.12   │  ← 메타 정보
+│███████████████████████████████│  ← 카테고리 색상 액센트 바(3px, 상단)
+│ 출처              2026.11.12   │  ← 메타 정보(출처가 날짜보다 한 단계 강조)
 │ 기사 제목(한국어, 2줄 말줄임)      │  ← 카드 제목
-│ 요약문(3~4줄, 말줄임)             │  ← 요약
-│ [카테고리 배지]                  │
-│                [Notion 저장]   │  ← 액션 (우측 정렬)
+│ 요약문(3줄, 말줄임)               │  ← 요약
+│ ───────────────────────────    │  ← 구분선
+│ [카테고리 배지]  원문 보기 [저장] │  ← 액션 (우측 정렬)
 └───────────────────────────────┘
 ```
 
-- 카드 컨테이너: `rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 transition-shadow hover:shadow-sm`
-- 제목: `line-clamp-2`, 요약: `line-clamp-3` 또는 `line-clamp-4`로 카드 높이를 균일하게 유지.
-- 카테고리 배지(카드 내부, 해당 기사가 속한 카테고리 표시): 카테고리 바의 비활성 칩보다 한 단계 작은 `text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400`
+- 카드 컨테이너: `rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden`
+- **카테고리 액센트 바**: 카드 상단에 `absolute inset-x-0 top-0 h-[3px]`로 해당 기사의 카테고리 색상(`categoryColor`)을 표시한다. 카테고리가 없으면 중립 톤(`bg-zinc-200 dark:bg-zinc-700`)으로 대체. 카테고리 필터 바의 색상 점과 동일한 색을 사용해 카드와 카테고리를 시각적으로 연결하는 유일한 포인트 컬러 장치이므로, 이 외에 카드 내부에 별도 색상 강조를 추가하지 않는다.
+- 제목: `line-clamp-2`, 요약: `line-clamp-3`로 카드 높이를 균일하게 유지.
+- 출처/날짜 메타 행과 하단 액션 행 사이는 `border-t border-zinc-100 dark:border-zinc-800`로 구분하고, 액션 행은 `mt-auto`로 카드 하단에 고정한다.
+- 카테고리 배지(카드 내부, 해당 기사가 속한 카테고리 표시): `text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400`
 - Notion 저장 버튼:
   - 미저장: `rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800`
   - 저장됨: 버튼 대신 `text-emerald-600 dark:text-emerald-400`의 체크 아이콘 + "저장됨" 텍스트로 전환(비활성, 클릭 불가).
+- 삭제 버튼: 평소에는 `opacity-0`으로 숨기고, 카드 호버(`group-hover`) 또는 키보드 포커스(`focus-visible:opacity-100`) 시에만 드러난다. 기본 상태의 카드를 더 정돈되게 유지하기 위함.
+- 카드 호버 인터랙션: `hover:-translate-y-0.5` + 테두리를 한 단계 밝게(`hover:border-zinc-300 dark:hover:border-zinc-700`) + 부드러운 확산 그림자(`hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)]`, 다크모드는 `rgba(0,0,0,0.65)`)로 살짝 떠오르는 느낌을 준다. 평면적인 `shadow-sm` 토글 대신, 삭제 버튼 노출과 함께 "조작 가능한 카드"임을 자연스럽게 알린다.
 - 번역/분류가 아직 처리 중(`pending`)인 카드: 제목/요약 영역을 스켈레톤(`animate-pulse bg-zinc-100 dark:bg-zinc-800`)으로 표시.
 - 번역 실패(`failed`) 카드: 카드 하단에 작은 경고 텍스트 `text-xs text-red-500` 로 실패 안내만 표시(카드 자체는 숨기지 않음).
 

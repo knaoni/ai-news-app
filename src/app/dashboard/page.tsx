@@ -39,13 +39,11 @@ export default async function DashboardPage() {
     userNotionSaves.map((save) => [save.articleId, save.notionPageUrl]),
   );
 
-  const dashboardCategories: DashboardCategory[] = userCategories.map(
-    (category) => ({
-      id: category.id,
-      name: category.name,
-      color: category.color,
-    }),
-  );
+  const dashboardCategories: DashboardCategory[] = userCategories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    color: category.color,
+  }));
 
   const dashboardArticles: DashboardArticle[] = feedRows
     .map((row) => ({
@@ -61,6 +59,7 @@ export default async function DashboardPage() {
       translationStatus: row.article.translationStatus,
       categoryId: row.categoryId,
       categoryName: row.category?.name ?? null,
+      categoryColor: row.category?.color ?? null,
       notionPageUrl: notionPageUrlByArticleId.get(row.article.id) ?? null,
     }))
     .sort((a, b) => {
@@ -69,7 +68,5 @@ export default async function DashboardPage() {
       return bTime - aTime;
     });
 
-  return (
-    <DashboardView categories={dashboardCategories} articles={dashboardArticles} />
-  );
+  return <DashboardView categories={dashboardCategories} articles={dashboardArticles} />;
 }

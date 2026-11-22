@@ -17,9 +17,13 @@ type NewsCardProps = {
 
 export function NewsCardSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="relative flex flex-col gap-4 overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[3px] animate-pulse bg-zinc-100 dark:bg-zinc-800"
+      />
       <div className="flex items-center justify-between">
-        <div className="h-3 w-16 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-3 w-20 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
         <div className="h-3 w-12 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
       </div>
       <div className="flex flex-col gap-2">
@@ -27,9 +31,11 @@ export function NewsCardSkeleton() {
         <div className="h-4 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
         <div className="h-4 w-2/3 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
       </div>
-      <div className="flex items-center justify-between pt-1">
-        <div className="h-5 w-14 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
-        <div className="h-3 w-12 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+      <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800">
+        <div className="flex items-center justify-between">
+          <div className="h-3 w-14 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+          <div className="h-6 w-16 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
+        </div>
       </div>
     </div>
   );
@@ -90,22 +96,34 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
   };
 
   return (
-    <article className="relative flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <article className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.18)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:shadow-[0_12px_28px_-16px_rgba(0,0,0,0.65)]">
+      <span
+        aria-hidden="true"
+        className={
+          article.categoryColor
+            ? "absolute inset-x-0 top-0 h-[3px]"
+            : "absolute inset-x-0 top-0 h-[3px] bg-zinc-200 dark:bg-zinc-700"
+        }
+        style={article.categoryColor ? { backgroundColor: article.categoryColor } : undefined}
+      />
+
       <button
         type="button"
         onClick={handleDelete}
         disabled={isDeleting}
         aria-label="뉴스 삭제"
-        className="absolute right-2 top-2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+        className="absolute right-3 top-3 rounded-full p-1.5 text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-600 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-60 group-hover:opacity-100 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
       >
         <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
           <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
         </svg>
       </button>
 
-      <div className="flex items-center justify-between pr-6 text-xs text-zinc-400 dark:text-zinc-500">
-        <span>{article.source}</span>
-        <span>{formatDate(displayDate)}</span>
+      <div className="flex items-center justify-between pr-6">
+        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+          {article.source}
+        </span>
+        <span className="text-xs text-zinc-400 dark:text-zinc-500">{formatDate(displayDate)}</span>
       </div>
 
       {isPending ? (
@@ -116,11 +134,11 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          <h2 className="line-clamp-2 break-words text-base font-medium leading-snug text-zinc-900 dark:text-zinc-100">
+          <h2 className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-zinc-900 dark:text-zinc-100">
             {article.titleKo ?? article.titleOriginal}
           </h2>
           {article.summaryKo ? (
-            <p className="line-clamp-3 break-words text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="line-clamp-3 break-words text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
               {article.summaryKo}
             </p>
           ) : null}
@@ -132,12 +150,21 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
       {saveError ? <p className="text-xs text-red-500">{saveError}</p> : null}
       {deleteError ? <p className="text-xs text-red-500">{deleteError}</p> : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
         <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
           {article.categoryName ?? "미분류"}
         </span>
 
         <div className="flex items-center gap-3">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            원문 보기
+          </a>
+
           {isSaved ? (
             <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
               <svg
@@ -159,20 +186,11 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
               type="button"
               onClick={handleSaveToNotion}
               disabled={isSaving || isPending}
-              className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               {isSaving ? "저장 중..." : "뉴스 저장"}
             </button>
           )}
-
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-          >
-            원문 보기
-          </a>
         </div>
       </div>
     </article>
