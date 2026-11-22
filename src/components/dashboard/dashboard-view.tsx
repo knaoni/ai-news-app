@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { CategoryModal } from "./category-modal";
 import { NewsCard, NewsCardSkeleton } from "./news-card";
 
@@ -162,36 +163,39 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
               총 {localArticles.length}개의 뉴스
             </span>
           </div>
-          <button
-            type="button"
-            onClick={handleFetchNews}
-            disabled={isFetchingNews}
-            className="flex shrink-0 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 dark:hover:bg-[#ccc]"
-          >
-            {isFetchingNews ? (
-              <svg
-                className="h-4 w-4 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
-                />
-              </svg>
-            ) : null}
-            뉴스 가져오기
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleFetchNews}
+              disabled={isFetchingNews}
+              className="flex shrink-0 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 dark:hover:bg-[#ccc]"
+            >
+              {isFetchingNews ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+                  />
+                </svg>
+              ) : null}
+              뉴스 가져오기
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

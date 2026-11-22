@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider, Show } from "@clerk/nextjs";
 import { AutoSignInModal } from "@/components/auto-sign-in-modal";
+import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +28,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // 인라인 스크립트가 하이드레이션 전에 dark 클래스를 붙이므로 className 불일치 경고를 무시한다.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
           <Show when="signed-in" fallback={<AutoSignInModal />}>
