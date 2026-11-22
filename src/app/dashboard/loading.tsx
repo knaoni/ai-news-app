@@ -1,11 +1,12 @@
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export default function DashboardLoading() {
   return (
     <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
-          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            AI 뉴스 수집기
-          </h1>
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">AI 뉴스 수집기</h1>
+          <ThemeToggle />
         </div>
       </header>
 
