@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CategoryModal } from "./category-modal";
-import { NewsCard } from "./news-card";
+import { NewsCard, NewsCardSkeleton } from "./news-card";
 
 export type DashboardCategory = {
   id: string;
@@ -281,7 +281,13 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           />
         ) : null}
 
-        {filteredArticles.length === 0 ? (
+        {isFetchingNews ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <NewsCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : filteredArticles.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
             <svg
               viewBox="0 0 24 24"

@@ -15,6 +15,26 @@ type NewsCardProps = {
   onDeleted: (articleId: string) => void;
 };
 
+export function NewsCardSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex items-center justify-between">
+        <div className="h-3 w-16 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-3 w-12 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="h-5 w-5/6 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-4 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+      </div>
+      <div className="flex items-center justify-between pt-1">
+        <div className="h-5 w-14 animate-pulse rounded-full bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-3 w-12 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+      </div>
+    </div>
+  );
+}
+
 export function NewsCard({ article, onDeleted }: NewsCardProps) {
   const [notionPageUrl, setNotionPageUrl] = useState(article.notionPageUrl);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,9 +62,7 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
       }
       setNotionPageUrl(data.pageUrl ?? null);
     } catch (error) {
-      setSaveError(
-        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-      );
+      setSaveError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
     } finally {
       setIsSaving(false);
     }
@@ -66,9 +84,7 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
       }
       onDeleted(article.articleId);
     } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-      );
+      setDeleteError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.");
       setIsDeleting(false);
     }
   };
@@ -82,12 +98,7 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
         aria-label="뉴스 삭제"
         className="absolute right-2 top-2 rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
       >
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-          className="h-4 w-4"
-        >
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" className="h-4 w-4">
           <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
         </svg>
       </button>
@@ -116,9 +127,7 @@ export function NewsCard({ article, onDeleted }: NewsCardProps) {
         </div>
       )}
 
-      {isFailed ? (
-        <p className="text-xs text-red-500">번역/요약에 실패한 기사입니다.</p>
-      ) : null}
+      {isFailed ? <p className="text-xs text-red-500">번역/요약에 실패한 기사입니다.</p> : null}
 
       {saveError ? <p className="text-xs text-red-500">{saveError}</p> : null}
       {deleteError ? <p className="text-xs text-red-500">{deleteError}</p> : null}
