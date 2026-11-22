@@ -426,6 +426,10 @@ export function DashboardView({ categories, articles }: DashboardViewProps) {
           </>
         )}
       </main>
+
+      <footer className="border-t border-zinc-200 py-4 text-center text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+        Copyright 2026 AI 뉴스 수집기. Powered by Claude.
+      </footer>
     </div>
   );
 }
